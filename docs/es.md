@@ -1,0 +1,186 @@
+# SMHI
+
+Las previsiones meteorológicas oficiales del **Instituto Meteorológico e
+Hidrológico de Suecia (SMHI)** en Gladys: valores actuales, previsiones hora a
+hora y día a día, y los avisos meteorológicos del SMHI para Suecia. Datos
+públicos, sin cuenta ni clave de API.
+
+> Sin relación con el SMHI. Desarrollada sin prueba real contra el SMHI: sus
+> comentarios son bienvenidos en el foro de Gladys.
+
+## Qué hace la integración
+
+- **Un dispositivo por lugar**: cada casa ubicada de Gladys y, opcionalmente,
+  un lugar dado por sus coordenadas (una cabaña, un puerto…).
+- **El tiempo actual** del lugar, actualizado cada 30 minutos: temperatura,
+  sensación térmica, humedad, presión, viento (medio, rachas, dirección),
+  nubosidad, precipitación (intensidad y tipo), visibilidad, probabilidad de
+  tormenta y el tiempo en palabras.
+- **Los avisos meteorológicos del SMHI** (amarillo, naranja, rojo) cuya zona
+  cubre el lugar: un nivel que las escenas de Gladys pueden comparar, un texto
+  y un disparador de escena.
+- Un **widget de panel** con las próximas 24 horas y los próximos días.
+- Una **acción de escena** que lee un día de la previsión (hoy, mañana, pasado
+  mañana) para un mensaje matinal o una alerta de helada.
+
+La previsión cubre la zona del modelo del SMHI: los países nórdicos y la
+región báltica (Suecia, Noruega, Finlandia, Dinamarca, los países bálticos y
+los mares que los rodean). Los avisos solo existen para Suecia y sus aguas.
+
+## Requisitos
+
+- Gladys Assistant 5.1.0 o posterior.
+- Gladys debe alcanzar `opendata-download-metfcst.smhi.se` y
+  `opendata-download-warnings.smhi.se` por HTTPS.
+- Para las casas: una ubicación definida en **Ajustes → Casas** de Gladys.
+
+## Instalación
+
+1. En Gladys, abra **Integraciones → Instalar desde GitHub** e introduzca
+   `https://github.com/guim31/gladys-smhi`, o instale **SMHI** desde la
+   tienda.
+2. Acepte el acceso a la ubicación de las casas: solo sirve para pedir al SMHI
+   la previsión de cada casa.
+3. Abra la pestaña **Descubrimiento** de la integración y añada los
+   dispositivos de los lugares que desee.
+
+## Configuración
+
+| Campo                      | Por defecto | Uso                                                                            |
+| -------------------------- | ----------- | ------------------------------------------------------------------------------ |
+| Prever para las casas      | activado    | Un dispositivo por casa ubicada en Gladys.                                     |
+| Otro lugar: latitud        | vacío       | Grados decimales (`59.3293`, también con coma). Vacío: solo las casas.         |
+| Otro lugar: longitud       | vacío       | Grados decimales, positivos hacia el este (`18.0686`).                         |
+| Otro lugar: nombre         | SMHI        | Nombre del dispositivo de ese lugar.                                           |
+| Provincia para los avisos  | Automático  | Automático: los avisos cuya zona dibujada contiene el lugar.                   |
+| Intervalo de actualización | 30 min      | 15 min, 30 min o 1 hora. El SMHI actualiza su previsión cada hora más o menos. |
+| Idioma                     | Francés     | Nombres de las funciones de los nuevos dispositivos, textos, resúmenes.        |
+
+Elegir una **provincia** (län) conserva también todos los avisos que la
+afectan, aunque su zona dibujada no contenga el lugar: útil en el borde de una
+zona, a cambio de avisos para el otro extremo de la provincia.
+
+Los nombres de las funciones se fijan al añadir el dispositivo: cambie primero
+el idioma y añada después los dispositivos.
+
+## El dispositivo de un lugar
+
+| Función                  | Unidad | Notas                                                                    |
+| ------------------------ | ------ | ------------------------------------------------------------------------ |
+| Temperatura              | °C     | Temperatura del aire a 2 m.                                              |
+| Sensación térmica        | °C     | Calculada (fórmula de Steadman: temperatura, humedad, viento).           |
+| Humedad                  | %      | Humedad relativa.                                                        |
+| Presión                  | hPa    | Al nivel del mar.                                                        |
+| Velocidad del viento     | m/s    | Viento medio a 10 m.                                                     |
+| Rachas de viento         | m/s    |                                                                          |
+| Dirección del viento     | °      | De dónde viene el viento (0 norte, 90 este).                             |
+| Nubosidad                | %      | Parte del cielo cubierta.                                                |
+| Precipitación            | mm/h   | Intensidad media de la hora.                                             |
+| Tipo de precipitación    | texto  | Lluvia, nieve, aguanieve, llovizna… si no, «Sin precipitación».          |
+| Visibilidad              | km     |                                                                          |
+| Probabilidad de tormenta | %      |                                                                          |
+| Tiempo                   | texto  | El símbolo meteorológico del SMHI en palabras (Cubierto, Lluvia débil…). |
+| Nivel de aviso           | 0 a 3  | 0 ninguno, 1 amarillo, 2 naranja, 3 rojo: el aviso más alto del lugar.   |
+| Avisos                   | texto  | Los avisos en curso, el más grave primero, con el fin del primero.       |
+
+Todas las funciones son de solo lectura. Los valores son los de la previsión
+para la hora en curso: el SMHI publica una previsión de modelo, no las
+mediciones de una estación meteorológica. Gladys convierte temperatura,
+velocidad y distancia a las unidades de cada usuario.
+
+## Widget de panel
+
+Añada el widget **Previsión SMHI** a un panel y elija el lugar (el primero si
+no elige ninguno). Muestra el tiempo en palabras y la hora de la última
+lectura, la temperatura, la sensación térmica y el viento, una curva de las
+próximas 24 horas, los avisos en curso y seis días (tiempo, temperaturas
+mínima y máxima, precipitación). Sigue el idioma y las unidades del usuario.
+
+## Disparador de escena: nuevo aviso meteorológico del SMHI
+
+Se activa cuando el SMHI emite un aviso cuya zona cubre un lugar, o eleva el
+nivel de un aviso en curso (de amarillo a naranja…). Filtros: el lugar, los
+niveles. Variables para las acciones siguientes: el nivel (`yellow`,
+`orange`, `red`), el fenómeno, la zona, la descripción, el inicio y el fin. El
+SMHI escribe fenómenos y descripciones en sueco e inglés: la integración
+transmite los ingleses.
+
+Un aviso se anuncia una sola vez: ni una nueva lectura ni un reinicio de la
+integración vuelven a activar el disparador para el mismo aviso al mismo
+nivel.
+
+## Acción de escena: leer la previsión del SMHI
+
+Elija el lugar y el día (hoy, mañana, pasado mañana). La acción devuelve, para
+las acciones siguientes de la escena: las temperaturas mínima y máxima (°C),
+la precipitación (mm), la racha más fuerte (m/s), la mayor probabilidad de
+tormenta (%), el tiempo en palabras y una frase de resumen en el idioma de la
+configuración.
+
+## Acción de configuración: comprobar la previsión
+
+El botón **Comprobar la previsión** consulta al SMHI en el acto para cada
+lugar, añadido o no, y muestra la respuesta: temperatura, tiempo y nivel de
+aviso, o el motivo de un fallo (lugar fuera de la zona de previsión, el SMHI
+no responde).
+
+## Ejemplos de escenas
+
+- **Mensaje matinal**: a las 7:00, _Leer la previsión del SMHI_ (hoy) y luego
+  enviar la salida _resumen_ a la familia por mensaje.
+- **Alerta de helada**: a las 18:00, _Leer la previsión del SMHI_ (mañana); si
+  la _temperatura mínima_ es inferior a 0, enviar «Cubra las plantas esta
+  noche».
+- **Temporal**: disparador _Nuevo aviso meteorológico del SMHI_ con los
+  niveles naranja y rojo, luego enviar el fenómeno y la descripción, y recoger
+  el toldo.
+- **Tormenta**: cuando la _probabilidad de tormenta_ supere el 50 %, apagar
+  los aparatos sensibles.
+
+## Actualización y cuotas
+
+La integración se actualiza sola, al intervalo elegido (30 minutos por
+defecto), aunque Gladys no consulte el dispositivo. Cada actualización hace
+una petición por lugar añadido y una para los avisos (toda Suecia a la vez).
+Los lugares cuyo dispositivo no se ha añadido nunca se leen, salvo con el
+botón _Comprobar la previsión_. El SMHI no publica cuotas para sus datos
+abiertos y actualiza su modelo más o menos una vez por hora: un intervalo más
+corto no aporta nada. El SMHI publica los datos bajo la licencia Creative
+Commons Atribución 4.0.
+
+## Solución de problemas
+
+- **«Ningún lugar»**: ninguna casa de Gladys está ubicada y no hay
+  coordenadas. Ubique una casa (Ajustes → Casas) o introduzca una latitud y una
+  longitud.
+- **«Coordenadas ilegibles»**: introduzca grados decimales, como `59.3293` y
+  `18.0686`, no grados y minutos.
+- **«Fuera de la zona de previsión del SMHI»**: el lugar está fuera de la zona
+  del modelo del SMHI (países nórdicos y bálticos). Allí hace falta otra
+  integración.
+- **«El SMHI no responde»**: Gladys no alcanza el SMHI (red, DNS, caída del
+  SMHI). Se conserva la última previsión mientras cubra el presente, y se
+  vuelve a intentar en la siguiente actualización.
+- **Ningún aviso cuando el SMHI muestra uno**: puede que la zona dibujada del
+  aviso no contenga el punto exacto del lugar. Elija su provincia en
+  _Provincia para los avisos_.
+- **Más detalles**: defina `LOG_LEVEL=debug` en la integración para ver cada
+  lectura en sus registros.
+
+## Limitaciones
+
+- Una previsión, no una medición: los valores proceden del modelo del SMHI
+  para el punto más cercano de su malla (unos 2,5 km).
+- Los avisos solo cubren Suecia; sus textos están en inglés.
+- Los nombres de las funciones y de los dispositivos se fijan al añadir el
+  dispositivo.
+- Sin índice UV, polen ni riesgo de incendio: el SMHI los publica en otro
+  lugar.
+- Cambiar las coordenadas del _otro lugar_ crea un dispositivo nuevo (un lugar
+  nuevo tiene su propio historial).
+
+## Créditos y licencia
+
+Datos: © SMHI, Creative Commons Atribución 4.0. La lectura de la API sigue la
+integración `smhi` de Home Assistant y la biblioteca `pysmhi` de G Johansson
+(MIT). Integración bajo la licencia Apache 2.0. Sin relación con el SMHI.

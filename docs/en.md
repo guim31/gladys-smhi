@@ -1,61 +1,181 @@
-# Demo Devices Template
+# SMHI
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+Official weather forecasts of the **Swedish Meteorological and Hydrological
+Institute (SMHI)** in Gladys: current values, hour-by-hour and day-by-day
+forecasts, and the SMHI weather warnings for Sweden. Public data, no account,
+no API key.
 
-## What you get
+> Not affiliated with SMHI. Developed without a live test against SMHI:
+> feedback welcome on the Gladys forum.
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+## What the integration does
+
+- **One device per place**: each Gladys house that has a location, plus,
+  optionally, a place given by its coordinates (a cottage, a boat harbour…).
+- **Current weather** of the place, refreshed every 30 minutes: temperature,
+  feels-like temperature, humidity, pressure, wind (mean, gusts, direction),
+  cloud cover, precipitation (intensity and type), visibility, thunder
+  probability and the weather in words.
+- **SMHI weather warnings** (yellow, orange, red) whose area covers the place,
+  as a level Gladys scenes can compare, a text, and a scene trigger.
+- A **dashboard widget** with the next 24 hours and the coming days.
+- A **scene action** that reads one day of the forecast (today, tomorrow, the
+  day after) for a morning message or a frost alert.
+
+The forecast covers the area of the SMHI model: the Nordic countries and the
+Baltic region (Sweden, Norway, Finland, Denmark, the Baltic states and the
+seas around them). The warnings only exist for Sweden and its waters.
+
+## Requirements
+
+- Gladys Assistant 5.1.0 or later.
+- Gladys must reach `opendata-download-metfcst.smhi.se` and
+  `opendata-download-warnings.smhi.se` over HTTPS.
+- For the houses: a location set in **Settings → Houses** of Gladys.
+
+## Installation
+
+1. In Gladys, open **Integrations → Install from GitHub** and enter
+   `https://github.com/guim31/gladys-smhi`, or install **SMHI** from the
+   store.
+2. Accept the access to the location of the houses: it is used to ask SMHI
+   for the forecast of each house, nothing else.
+3. Open the **Discovery** tab of the integration and add the devices of the
+   places you want.
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+| Field                   | Default   | Use                                                                         |
+| ----------------------- | --------- | --------------------------------------------------------------------------- |
+| Forecast for the houses | on        | One device per house that has a location in Gladys.                         |
+| Other place: latitude   | empty     | Decimal degrees (`59.3293`, a comma works too). Empty: the houses only.     |
+| Other place: longitude  | empty     | Decimal degrees, east positive (`18.0686`).                                 |
+| Other place: name       | SMHI      | Name of the device of that place.                                           |
+| County for the warnings | Automatic | Automatic: the warnings whose drawn area contains the place.                |
+| Refresh interval        | 30 min    | 15 min, 30 min or 1 hour. SMHI updates its forecast about once an hour.     |
+| Language                | French    | Names of the features of new devices, weather and warning texts, summaries. |
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+Choosing a **county** also keeps every warning that touches the county, even
+when its drawn area does not contain the place: useful near the edge of an
+area, at the cost of warnings for the other end of the county.
 
-## Actions
+The feature names are fixed when the device is added: change the language
+first, then add the devices.
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+## The device of a place
 
-## Scenes
+| Feature             | Unit   | Notes                                                                   |
+| ------------------- | ------ | ----------------------------------------------------------------------- |
+| Temperature         | °C     | Air temperature at 2 m.                                                 |
+| Feels like          | °C     | Computed (Steadman formula: temperature, humidity, wind).               |
+| Humidity            | %      | Relative humidity.                                                      |
+| Pressure            | hPa    | At mean sea level.                                                      |
+| Wind speed          | m/s    | Mean wind at 10 m.                                                      |
+| Wind gusts          | m/s    |                                                                         |
+| Wind direction      | °      | Where the wind comes from (0 north, 90 east).                           |
+| Cloud cover         | %      | Share of the sky covered.                                               |
+| Precipitation       | mm/h   | Mean intensity of the hour.                                             |
+| Precipitation type  | text   | Rain, snow, sleet, drizzle… "No precipitation" when nothing falls.      |
+| Visibility          | km     |                                                                         |
+| Thunder probability | %      |                                                                         |
+| Weather             | text   | The SMHI weather symbol in words (Overcast, Light rain…).               |
+| Warning level       | 0 to 3 | 0 none, 1 yellow, 2 orange, 3 red: the highest warning of the place.    |
+| Warnings            | text   | The warnings in progress, the highest first, with the end of the first. |
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+All features are read-only. The values are those of the forecast for the hour
+in progress: SMHI publishes a model forecast, not the measurements of a
+weather station. Gladys converts temperature, speed and distance to the units
+of each user.
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+## Dashboard widget
 
-## Dashboard
+Add the **SMHI forecast** widget to a dashboard and choose the place (the
+first one when none is chosen). It shows the weather in words and the time of
+the last reading, the temperature, the feels-like temperature and the wind,
+a curve of the next 24 hours, the warnings in progress and six days (weather,
+minimum and maximum temperature, precipitation). It follows the language and
+the units of the user.
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+## Scene trigger: new SMHI weather warning
+
+Fires when SMHI issues a warning whose area covers a place, or raises the
+level of a warning in progress (yellow to orange…). Filters: the place, the
+levels. Variables for the next actions: the level (`yellow`, `orange`,
+`red`), the event, the area, the description, the start and the end. SMHI
+writes events and descriptions in Swedish and English: the integration passes
+the English ones.
+
+A warning is announced once: neither a new reading nor a restart of the
+integration fires the trigger again for the same warning at the same level.
+
+## Scene action: read the SMHI forecast
+
+Choose the place and the day (today, tomorrow, the day after). The action
+returns, for the next actions of the scene: the minimum and maximum
+temperature (°C), the precipitation (mm), the strongest gust (m/s), the
+highest thunder probability (%), the weather in words, and a summary
+sentence in the language of the configuration.
+
+## Configuration action: check the forecast
+
+The **Check the forecast** button asks SMHI now for every place, added or
+not, and shows the answer: temperature, weather and warning level, or the
+reason of a failure (place outside the forecast area, SMHI not answering).
+
+## Scene examples
+
+- **Morning message**: at 7:00, _Read the SMHI forecast_ (today), then send
+  the _summary_ output to the family by message.
+- **Frost alert**: at 18:00, _Read the SMHI forecast_ (tomorrow); if the
+  _minimum temperature_ is below 0, send "Cover the plants tonight".
+- **Storm warning**: trigger _New SMHI weather warning_ with the orange and
+  red levels, then send the event and the description, and close the
+  awning.
+- **Thunder**: when _Thunder probability_ goes above 50 %, turn off the
+  sensitive equipment.
+
+## Refresh and quotas
+
+The integration refreshes by itself, at the chosen interval (30 minutes by
+default), even when Gladys does not poll the device. Each refresh makes one
+request per added place and one for the warnings (the whole of Sweden at
+once). Places whose device was not added are never read, except by the
+_Check the forecast_ button. SMHI publishes no quota for its open data and
+updates its model about once an hour: a shorter interval brings nothing. The
+data are published by SMHI under the Creative Commons Attribution 4.0
+licence.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"No location"**: no house of Gladys has a location, and no coordinates
+  are entered. Set the location of a house (Settings → Houses), or enter a
+  latitude and a longitude.
+- **"The coordinates cannot be read"**: enter decimal degrees, such as
+  `59.3293` and `18.0686`, not degrees and minutes.
+- **"Outside the SMHI forecast area"**: the place is outside the area of the
+  SMHI model (the Nordic and Baltic countries). Another integration is needed
+  there.
+- **"SMHI does not answer"**: Gladys cannot reach SMHI (network, DNS, SMHI
+  down). The last forecast is kept while it covers the present, and a new try
+  follows at the next refresh.
+- **No warning while SMHI shows one**: the drawn area of the warning may not
+  contain the exact point of the place. Choose your county in _County for the
+  warnings_.
+- **More details**: set `LOG_LEVEL=debug` on the integration to see every
+  reading in its logs.
+
+## Limits
+
+- A forecast, not a measurement: the values come from the SMHI model for the
+  nearest point of its grid (about 2.5 km).
+- The warnings cover Sweden only; their texts are in English.
+- The feature names and the device names are fixed when the device is added.
+- No UV index, no pollen, no fire risk: SMHI publishes them elsewhere.
+- Changing the coordinates of the _other place_ creates a new device (a new
+  place has its own history).
+
+## Credits and licence
+
+Data: © SMHI, Creative Commons Attribution 4.0. The reading of the API follows
+the Home Assistant `smhi` integration and the `pysmhi` library by G Johansson
+(MIT). Integration under the Apache 2.0 licence. Not affiliated with SMHI.

@@ -1,45 +1,92 @@
 // -----------------------------------------------------------------------------
-// Integration configuration.
-//
-// The configuration is filled in by the user in Gladys, from the `config_schema`
-// declared in `gladys-assistant-integration.json`. The SDK fetches it for you
-// (`gladys.getConfig()`) and notifies you of every change through
-// `gladys.onConfigUpdated()`.
-//
-// This module only provides defaults and normalizes the received object, so the
-// rest of the code never has to deal with `undefined`.
+// Integration configuration: defaults (mirroring the manifest `config_schema`)
+// and normalization, so the rest of the code never deals with `undefined` or
+// with the strings a form sends.
 // -----------------------------------------------------------------------------
 
-// Defaults: they MUST stay consistent with the `default` values declared in the
-// `config_schema` of the manifest.
+export const LANGUAGES = ['en', 'fr', 'de', 'es'];
+
+// The Swedish counties (län) as the SMHI warnings API numbers them in
+// `affectedAreas` (the official county codes).
+export const COUNTIES = {
+  1: 'Stockholms län',
+  3: 'Uppsala län',
+  4: 'Södermanlands län',
+  5: 'Östergötlands län',
+  6: 'Jönköpings län',
+  7: 'Kronobergs län',
+  8: 'Kalmar län',
+  9: 'Gotlands län',
+  10: 'Blekinge län',
+  12: 'Skåne län',
+  13: 'Hallands län',
+  14: 'Västra Götalands län',
+  17: 'Värmlands län',
+  18: 'Örebro län',
+  19: 'Västmanlands län',
+  20: 'Dalarnas län',
+  21: 'Gävleborgs län',
+  22: 'Västernorrlands län',
+  23: 'Jämtlands län',
+  24: 'Västerbottens län',
+  25: 'Norrbottens län',
+};
+
+export const REFRESH_MINUTES = ['15', '30', '60'];
+
+// Defaults: they MUST stay equal to the `default` values of the manifest
+// (test/manifest.test.js checks it).
 export const DEFAULT_CONFIG = {
-  latitude: 48.8566, // Paris
-  longitude: 2.3522,
-  unit: 'celsius', // 'celsius' | 'fahrenheit'
-  // Seconds between two reads of the polled sensors. Gladys polls at most once
-  // a minute: slower intervals are applied by skipping polls (see
-  // createPoller in src/devices/index.js).
-  poll_frequency: 300,
-  // Reserved key (NOT in config_schema): because the manifest declares both
-  // 'local' and 'cloud' in its `transports` field, Gladys shows a standard
-  // "Prefer the local connection" toggle and sends the user's choice here.
-  // Read-only for the integration; defaults to true.
-  GLADYS_PREFER_LOCAL: true,
+  use_houses: true,
+  latitude: '',
+  longitude: '',
+  place_name: '',
+  warning_county: 'auto',
+  refresh_minutes: '30',
+  language: 'fr',
 };
 
 /**
- * Merge the user config with the defaults.
- * @param {Record<string, unknown>} raw config returned by the SDK
+ * Parse a coordinate typed by hand: "59.3293", "59,3293", " 18.07 ".
+ * @param {unknown} raw
+ * @param {number} limit 90 for a latitude, 180 for a longitude
+ * @returns {number | null} null when empty or invalid
+ */
+export function parseCoordinate(raw, limit) {
+  const text = String(raw ?? '')
+    .trim()
+    .replace(',', '.');
+  if (text === '' || !/^[-+]?\d+(\.\d+)?$/.test(text)) {
+    return null;
+  }
+  const value = Number(text);
+  return Number.isFinite(value) && Math.abs(value) <= limit ? value : null;
+}
+
+/**
+ * @param {Record<string, unknown>} [raw] config returned by the SDK
  */
 export function normalizeConfig(raw = {}) {
+  const config = { ...DEFAULT_CONFIG, ...raw };
+  const language = String(config.language);
+  const refresh = String(config.refresh_minutes);
+  const county = String(config.warning_county);
+  const latitudeText = String(config.latitude ?? '').trim();
+  const longitudeText = String(config.longitude ?? '').trim();
+  const latitude = parseCoordinate(latitudeText, 90);
+  const longitude = parseCoordinate(longitudeText, 180);
   return {
-    ...DEFAULT_CONFIG,
-    ...raw,
-    // Force the types: config may arrive as strings from a form.
-    latitude: Number(raw.latitude ?? DEFAULT_CONFIG.latitude),
-    longitude: Number(raw.longitude ?? DEFAULT_CONFIG.longitude),
-    poll_frequency: Number(raw.poll_frequency ?? DEFAULT_CONFIG.poll_frequency),
-    // The preference is a boolean; anything but an explicit false means true.
-    GLADYS_PREFER_LOCAL: raw.GLADYS_PREFER_LOCAL !== false,
+    use_houses: config.use_houses !== false && config.use_houses !== 'false',
+    latitude,
+    longitude,
+    // Something was typed but cannot be read: said in the logs and the status.
+    coordinatesInvalid:
+      (latitudeText !== '' || longitudeText !== '') && (latitude === null || longitude === null),
+    place_name: String(config.place_name ?? '')
+      .trim()
+      .slice(0, 60),
+    warning_county: county in COUNTIES ? county : 'auto',
+    refresh_minutes: Number(REFRESH_MINUTES.includes(refresh) ? refresh : '30'),
+    language: LANGUAGES.includes(language) ? language : DEFAULT_CONFIG.language,
   };
 }
