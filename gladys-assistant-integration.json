@@ -1,177 +1,780 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "SMHI",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Official SMHI weather for Sweden and the Nordics: current values, forecasts, warnings.",
+    "fr": "Météo officielle du SMHI, Suède et pays nordiques : mesures, prévisions, avertissements.",
+    "de": "Offizielles SMHI-Wetter für Schweden und den Norden: Werte, Vorhersagen, Warnungen.",
+    "es": "Tiempo oficial del SMHI para Suecia y los países nórdicos: valores, previsiones, avisos."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-smhi:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-smhi/main/cover.png",
+  "categories": ["environment"],
+  "transports": ["cloud"],
+  "location": true,
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "SMHI forecasts",
+        "fr": "Prévisions du SMHI",
+        "de": "SMHI-Vorhersagen",
+        "es": "Previsiones del SMHI"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Forecasts of the Swedish Meteorological and Hydrological Institute (SMHI) for the Nordic and Baltic countries, and its weather warnings for Sweden. Public data, no account. One device per place: each Gladys house with a location, and the coordinates entered below. Not affiliated with SMHI.",
+        "fr": "Prévisions de l'Institut météorologique suédois (SMHI) pour les pays nordiques et baltes, et ses avertissements météo pour la Suède. Données publiques, sans compte. Un appareil par lieu : chaque maison localisée de Gladys, et les coordonnées saisies ci-dessous. Sans lien avec le SMHI.",
+        "de": "Vorhersagen des schwedischen Wetterdienstes SMHI für die nordischen und baltischen Länder und seine Wetterwarnungen für Schweden. Öffentliche Daten, kein Konto. Ein Gerät pro Ort: jedes Haus mit Standort in Gladys und die unten eingetragenen Koordinaten. Nicht mit SMHI verbunden.",
+        "es": "Previsiones del Instituto Meteorológico e Hidrológico de Suecia (SMHI) para los países nórdicos y bálticos, y sus avisos meteorológicos para Suecia. Datos públicos, sin cuenta. Un dispositivo por lugar: cada casa ubicada de Gladys y las coordenadas introducidas abajo. Sin relación con el SMHI."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://opendata.smhi.se/",
+          "label": {
+            "en": "SMHI open data",
+            "fr": "Données ouvertes du SMHI",
+            "de": "Offene Daten des SMHI",
+            "es": "Datos abiertos del SMHI"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "use_houses",
+      "type": "boolean",
+      "label": {
+        "en": "Forecast for the Gladys houses",
+        "fr": "Prévoir pour les maisons de Gladys",
+        "de": "Vorhersage für die Häuser in Gladys",
+        "es": "Prever para las casas de Gladys"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "description": {
+        "en": "One device per house that has a location in Gladys (Settings → Houses).",
+        "fr": "Un appareil par maison localisée dans Gladys (Paramètres → Maisons).",
+        "de": "Ein Gerät pro Haus mit Standort in Gladys (Einstellungen → Häuser).",
+        "es": "Un dispositivo por casa ubicada en Gladys (Ajustes → Casas)."
+      },
+      "required": false,
+      "default": true
+    },
+    {
+      "key": "latitude",
+      "type": "string",
+      "label": {
+        "en": "Other place: latitude",
+        "fr": "Autre lieu : latitude",
+        "de": "Anderer Ort: Breitengrad",
+        "es": "Otro lugar: latitud"
+      },
+      "description": {
+        "en": "Decimal degrees, a comma is accepted. Leave empty for the houses only.",
+        "fr": "Degrés décimaux, la virgule est acceptée. Laissez vide pour les seules maisons.",
+        "de": "Dezimalgrad, ein Komma geht auch. Leer lassen für nur die Häuser.",
+        "es": "Grados decimales, se acepta la coma. Déjelo vacío para solo las casas."
+      },
+      "placeholder": {
+        "en": "e.g. 59.3293",
+        "fr": "ex. 59.3293",
+        "de": "z. B. 59.3293",
+        "es": "p. ej. 59.3293"
+      },
+      "required": false
     },
     {
       "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "type": "string",
+      "label": {
+        "en": "Other place: longitude",
+        "fr": "Autre lieu : longitude",
+        "de": "Anderer Ort: Längengrad",
+        "es": "Otro lugar: longitud"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "description": {
+        "en": "Decimal degrees, east positive.",
+        "fr": "Degrés décimaux, positifs vers l'est.",
+        "de": "Dezimalgrad, nach Osten positiv.",
+        "es": "Grados decimales, positivos hacia el este."
+      },
+      "placeholder": {
+        "en": "e.g. 18.0686",
+        "fr": "ex. 18.0686",
+        "de": "z. B. 18.0686",
+        "es": "p. ej. 18.0686"
+      },
+      "required": false
     },
     {
-      "key": "unit",
+      "key": "place_name",
+      "type": "string",
+      "label": {
+        "en": "Other place: name",
+        "fr": "Autre lieu : nom",
+        "de": "Anderer Ort: Name",
+        "es": "Otro lugar: nombre"
+      },
+      "description": {
+        "en": "Name of its device, SMHI when empty.",
+        "fr": "Nom de son appareil, SMHI si vide.",
+        "de": "Name seines Geräts, SMHI wenn leer.",
+        "es": "Nombre de su dispositivo, SMHI si está vacío."
+      },
+      "placeholder": {
+        "en": "e.g. Cottage",
+        "fr": "ex. Chalet",
+        "de": "z. B. Ferienhaus",
+        "es": "p. ej. Cabaña"
+      },
+      "required": false
+    },
+    {
+      "key": "warning_county",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "County for the warnings",
+        "fr": "Comté pour les avertissements",
+        "de": "Provinz für die Warnungen",
+        "es": "Provincia para los avisos"
+      },
+      "description": {
+        "en": "Automatic: the warnings whose area contains the place. A county: also every warning touching it.",
+        "fr": "Automatique : les avertissements dont la zone contient le lieu. Un comté : aussi tous ceux qui le touchent.",
+        "de": "Automatisch: die Warnungen, deren Gebiet den Ort enthält. Eine Provinz: auch alle, die sie berühren.",
+        "es": "Automático: los avisos cuya zona contiene el lugar. Una provincia: también todos los que la afectan."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "auto",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "auto",
+          "label": {
+            "en": "Automatic (area of the warning)",
+            "fr": "Automatique (zone de l'avertissement)",
+            "de": "Automatisch (Gebiet der Warnung)",
+            "es": "Automático (zona del aviso)"
+          }
+        },
+        {
+          "value": "1",
+          "label": {
+            "en": "Stockholms län",
+            "fr": "Stockholms län",
+            "de": "Stockholms län",
+            "es": "Stockholms län"
+          }
+        },
+        {
+          "value": "3",
+          "label": {
+            "en": "Uppsala län",
+            "fr": "Uppsala län",
+            "de": "Uppsala län",
+            "es": "Uppsala län"
+          }
+        },
+        {
+          "value": "4",
+          "label": {
+            "en": "Södermanlands län",
+            "fr": "Södermanlands län",
+            "de": "Södermanlands län",
+            "es": "Södermanlands län"
+          }
+        },
+        {
+          "value": "5",
+          "label": {
+            "en": "Östergötlands län",
+            "fr": "Östergötlands län",
+            "de": "Östergötlands län",
+            "es": "Östergötlands län"
+          }
+        },
+        {
+          "value": "6",
+          "label": {
+            "en": "Jönköpings län",
+            "fr": "Jönköpings län",
+            "de": "Jönköpings län",
+            "es": "Jönköpings län"
+          }
+        },
+        {
+          "value": "7",
+          "label": {
+            "en": "Kronobergs län",
+            "fr": "Kronobergs län",
+            "de": "Kronobergs län",
+            "es": "Kronobergs län"
+          }
+        },
+        {
+          "value": "8",
+          "label": {
+            "en": "Kalmar län",
+            "fr": "Kalmar län",
+            "de": "Kalmar län",
+            "es": "Kalmar län"
+          }
+        },
+        {
+          "value": "9",
+          "label": {
+            "en": "Gotlands län",
+            "fr": "Gotlands län",
+            "de": "Gotlands län",
+            "es": "Gotlands län"
+          }
+        },
+        {
+          "value": "10",
+          "label": {
+            "en": "Blekinge län",
+            "fr": "Blekinge län",
+            "de": "Blekinge län",
+            "es": "Blekinge län"
+          }
+        },
+        {
+          "value": "12",
+          "label": {
+            "en": "Skåne län",
+            "fr": "Skåne län",
+            "de": "Skåne län",
+            "es": "Skåne län"
+          }
+        },
+        {
+          "value": "13",
+          "label": {
+            "en": "Hallands län",
+            "fr": "Hallands län",
+            "de": "Hallands län",
+            "es": "Hallands län"
+          }
+        },
+        {
+          "value": "14",
+          "label": {
+            "en": "Västra Götalands län",
+            "fr": "Västra Götalands län",
+            "de": "Västra Götalands län",
+            "es": "Västra Götalands län"
+          }
+        },
+        {
+          "value": "17",
+          "label": {
+            "en": "Värmlands län",
+            "fr": "Värmlands län",
+            "de": "Värmlands län",
+            "es": "Värmlands län"
+          }
+        },
+        {
+          "value": "18",
+          "label": {
+            "en": "Örebro län",
+            "fr": "Örebro län",
+            "de": "Örebro län",
+            "es": "Örebro län"
+          }
+        },
+        {
+          "value": "19",
+          "label": {
+            "en": "Västmanlands län",
+            "fr": "Västmanlands län",
+            "de": "Västmanlands län",
+            "es": "Västmanlands län"
+          }
+        },
+        {
+          "value": "20",
+          "label": {
+            "en": "Dalarnas län",
+            "fr": "Dalarnas län",
+            "de": "Dalarnas län",
+            "es": "Dalarnas län"
+          }
+        },
+        {
+          "value": "21",
+          "label": {
+            "en": "Gävleborgs län",
+            "fr": "Gävleborgs län",
+            "de": "Gävleborgs län",
+            "es": "Gävleborgs län"
+          }
+        },
+        {
+          "value": "22",
+          "label": {
+            "en": "Västernorrlands län",
+            "fr": "Västernorrlands län",
+            "de": "Västernorrlands län",
+            "es": "Västernorrlands län"
+          }
+        },
+        {
+          "value": "23",
+          "label": {
+            "en": "Jämtlands län",
+            "fr": "Jämtlands län",
+            "de": "Jämtlands län",
+            "es": "Jämtlands län"
+          }
+        },
+        {
+          "value": "24",
+          "label": {
+            "en": "Västerbottens län",
+            "fr": "Västerbottens län",
+            "de": "Västerbottens län",
+            "es": "Västerbottens län"
+          }
+        },
+        {
+          "value": "25",
+          "label": {
+            "en": "Norrbottens län",
+            "fr": "Norrbottens län",
+            "de": "Norrbottens län",
+            "es": "Norrbottens län"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "refresh_minutes",
+      "type": "select",
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de rafraîchissement",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "SMHI updates its forecast about once an hour.",
+        "fr": "Le SMHI met à jour sa prévision environ une fois par heure.",
+        "de": "SMHI aktualisiert seine Vorhersage etwa einmal pro Stunde.",
+        "es": "El SMHI actualiza su previsión aproximadamente una vez por hora."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "30",
+      "options": [
+        {
+          "value": "15",
+          "label": {
+            "en": "15 minutes",
+            "fr": "15 minutes",
+            "de": "15 Minuten",
+            "es": "15 minutos"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "30 minutes",
+            "fr": "30 minutes",
+            "de": "30 Minuten",
+            "es": "30 minutos"
+          }
+        },
+        {
+          "value": "60",
+          "label": {
+            "en": "1 hour",
+            "fr": "1 heure",
+            "de": "1 Stunde",
+            "es": "1 hora"
+          }
+        }
+      ]
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the names and texts",
+        "fr": "Langue des noms et des textes",
+        "de": "Sprache der Namen und Texte",
+        "es": "Idioma de los nombres y textos"
+      },
+      "description": {
+        "en": "Feature names of new devices, weather and warning texts, scene action summary.",
+        "fr": "Noms des fonctionnalités des nouveaux appareils, textes de temps et d'avertissement, résumé de l'action de scène.",
+        "de": "Funktionsnamen neuer Geräte, Wetter- und Warntexte, Zusammenfassung der Szenenaktion.",
+        "es": "Nombres de las funciones de los nuevos dispositivos, textos del tiempo y de avisos, resumen de la acción de escena."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "check",
+      "label": {
+        "en": "Check the forecast",
+        "fr": "Vérifier la prévision",
+        "de": "Vorhersage prüfen",
+        "es": "Comprobar la previsión"
+      },
+      "description": {
+        "en": "Reads SMHI now for every place, added or not, and shows what it answers.",
+        "fr": "Interroge le SMHI maintenant pour chaque lieu, ajouté ou non, et affiche sa réponse.",
+        "de": "Fragt SMHI jetzt für jeden Ort ab, hinzugefügt oder nicht, und zeigt die Antwort.",
+        "es": "Consulta ahora el SMHI para cada lugar, añadido o no, y muestra su respuesta."
+      },
+      "timeout_seconds": 60
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "warning_issued",
+      "label": {
+        "en": "New SMHI weather warning",
+        "fr": "Nouvel avertissement météo du SMHI",
+        "de": "Neue SMHI-Wetterwarnung",
+        "es": "Nuevo aviso meteorológico del SMHI"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "SMHI issues a warning for a place, or raises the level of one in progress.",
+        "fr": "Le SMHI émet un avertissement pour un lieu, ou relève le niveau d'un avertissement en cours.",
+        "de": "SMHI gibt eine Warnung für einen Ort aus oder erhöht die Stufe einer laufenden Warnung.",
+        "es": "El SMHI emite un aviso para un lugar, o eleva el nivel de uno en curso."
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
         },
         {
-          "key": "target",
+          "key": "level",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "label": {
+            "en": "Levels",
+            "fr": "Niveaux",
+            "de": "Stufen",
+            "es": "Niveles"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "yellow",
+              "label": {
+                "en": "Yellow",
+                "fr": "Jaune",
+                "de": "Gelb",
+                "es": "Amarillo"
+              }
+            },
+            {
+              "value": "orange",
+              "label": {
+                "en": "Orange",
+                "fr": "Orange",
+                "de": "Orange",
+                "es": "Naranja"
+              }
+            },
+            {
+              "value": "red",
+              "label": {
+                "en": "Red",
+                "fr": "Rouge",
+                "de": "Rot",
+                "es": "Rojo"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "level",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Level (yellow, orange, red)",
+            "fr": "Niveau (yellow, orange, red)",
+            "de": "Stufe (yellow, orange, red)",
+            "es": "Nivel (yellow, orange, red)"
+          }
+        },
+        {
+          "key": "event",
+          "type": "string",
+          "label": {
+            "en": "Event (in English)",
+            "fr": "Phénomène (en anglais)",
+            "de": "Ereignis (auf Englisch)",
+            "es": "Fenómeno (en inglés)"
+          }
+        },
+        {
+          "key": "area",
+          "type": "string",
+          "label": {
+            "en": "Area of the warning",
+            "fr": "Zone de l'avertissement",
+            "de": "Gebiet der Warnung",
+            "es": "Zona del aviso"
+          }
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "label": {
+            "en": "Description (in English)",
+            "fr": "Description (en anglais)",
+            "de": "Beschreibung (auf Englisch)",
+            "es": "Descripción (en inglés)"
+          }
+        },
+        {
+          "key": "starts_at",
+          "type": "string",
+          "label": {
+            "en": "Start (ISO date)",
+            "fr": "Début (date ISO)",
+            "de": "Beginn (ISO-Datum)",
+            "es": "Inicio (fecha ISO)"
+          }
+        },
+        {
+          "key": "ends_at",
+          "type": "string",
+          "label": {
+            "en": "End (ISO date)",
+            "fr": "Fin (date ISO)",
+            "de": "Ende (ISO-Datum)",
+            "es": "Fin (fecha ISO)"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "get_forecast",
+      "label": {
+        "en": "Read the SMHI forecast",
+        "fr": "Lire la prévision du SMHI",
+        "de": "SMHI-Vorhersage lesen",
+        "es": "Leer la previsión del SMHI"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Summary of one day for a place: temperatures, precipitation, gusts, thunder, weather.",
+        "fr": "Résumé d'une journée pour un lieu : températures, précipitations, rafales, orage, temps.",
+        "de": "Zusammenfassung eines Tages für einen Ort: Temperaturen, Niederschlag, Böen, Gewitter, Wetter.",
+        "es": "Resumen de un día para un lugar: temperaturas, precipitación, rachas, tormenta, tiempo."
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          },
           "required": true
+        },
+        {
+          "key": "day",
+          "type": "select",
+          "label": {
+            "en": "Day",
+            "fr": "Jour",
+            "de": "Tag",
+            "es": "Día"
+          },
+          "required": true,
+          "default": "today",
+          "options": [
+            {
+              "value": "today",
+              "label": {
+                "en": "Today",
+                "fr": "Aujourd'hui",
+                "de": "Heute",
+                "es": "Hoy"
+              }
+            },
+            {
+              "value": "tomorrow",
+              "label": {
+                "en": "Tomorrow",
+                "fr": "Demain",
+                "de": "Morgen",
+                "es": "Mañana"
+              }
+            },
+            {
+              "value": "day_after",
+              "label": {
+                "en": "Day after tomorrow",
+                "fr": "Après-demain",
+                "de": "Übermorgen",
+                "es": "Pasado mañana"
+              }
+            }
+          ]
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "temperature_min",
+          "type": "number",
+          "label": {
+            "en": "Minimum temperature (°C)",
+            "fr": "Température minimale (°C)",
+            "de": "Tiefsttemperatur (°C)",
+            "es": "Temperatura mínima (°C)"
+          }
+        },
+        {
+          "key": "temperature_max",
+          "type": "number",
+          "label": {
+            "en": "Maximum temperature (°C)",
+            "fr": "Température maximale (°C)",
+            "de": "Höchsttemperatur (°C)",
+            "es": "Temperatura máxima (°C)"
+          }
+        },
+        {
+          "key": "precipitation",
+          "type": "number",
+          "label": {
+            "en": "Precipitation (mm)",
+            "fr": "Précipitations (mm)",
+            "de": "Niederschlag (mm)",
+            "es": "Precipitación (mm)"
+          }
+        },
+        {
+          "key": "wind_gust_max",
+          "type": "number",
+          "label": {
+            "en": "Strongest gust (m/s)",
+            "fr": "Rafale maximale (m/s)",
+            "de": "Stärkste Böe (m/s)",
+            "es": "Racha máxima (m/s)"
+          }
+        },
+        {
+          "key": "thunder_probability_max",
+          "type": "number",
+          "label": {
+            "en": "Thunder probability (%)",
+            "fr": "Probabilité d'orage (%)",
+            "de": "Gewitterwahrscheinlichkeit (%)",
+            "es": "Probabilidad de tormenta (%)"
+          }
+        },
+        {
+          "key": "condition",
+          "type": "string",
+          "label": {
+            "en": "Weather",
+            "fr": "Temps",
+            "de": "Wetter",
+            "es": "Tiempo"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary sentence",
+            "fr": "Phrase de résumé",
+            "de": "Zusammenfassender Satz",
+            "es": "Frase de resumen"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "forecast",
+      "label": {
+        "en": "SMHI forecast",
+        "fr": "Prévisions SMHI",
+        "de": "SMHI-Vorhersage",
+        "es": "Previsión SMHI"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Current weather, next 24 hours, coming days and warnings of a place.",
+        "fr": "Temps actuel, prochaines 24 h, jours à venir et avertissements d'un lieu.",
+        "de": "Aktuelles Wetter, nächste 24 Stunden, kommende Tage und Warnungen eines Orts.",
+        "es": "Tiempo actual, próximas 24 horas, próximos días y avisos de un lugar."
+      },
+      "icon": "cloud",
+      "settings": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
+        }
+      ]
     }
   ]
 }

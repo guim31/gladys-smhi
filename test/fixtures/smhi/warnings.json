@@ -1,0 +1,143 @@
+[
+  {
+    "id": 9101,
+    "normalProbability": true,
+    "event": {
+      "sv": "Vind",
+      "en": "Wind",
+      "code": "WIND",
+      "mhoClassification": { "sv": "Meteorologi", "en": "Meteorology", "code": "MET" }
+    },
+    "descriptions": [],
+    "warningAreas": [
+      {
+        "id": 91011,
+        "approximateStart": "2026-04-02T09:00:00.000Z",
+        "approximateEnd": "2026-04-03T06:00:00.000Z",
+        "published": "2026-04-01T14:02:00.000Z",
+        "normalProbability": true,
+        "pushNotice": true,
+        "areaName": { "sv": "Östergötlands kust", "en": "Coast of Östergötland" },
+        "warningLevel": { "sv": "Orange", "en": "Orange", "code": "ORANGE" },
+        "eventDescription": {
+          "sv": "Mycket hårda vindbyar",
+          "en": "Very strong wind gusts",
+          "code": "WIND"
+        },
+        "affectedAreas": [{ "id": 5, "sv": "Östergötlands län", "en": "Östergötland County" }],
+        "descriptions": [
+          {
+            "title": { "sv": "Vad händer", "en": "What happens", "code": "WHAT" },
+            "text": { "sv": "Vindbyar på 25-30 m/s.", "en": "Wind gusts of 25-30 m/s." }
+          },
+          {
+            "title": { "sv": "Var", "en": "Where", "code": "WHERE" },
+            "text": { "sv": "Längs kusten.", "en": "Along the coast." }
+          }
+        ],
+        "area": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": {},
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [15.6, 58.2],
+                    [17.0, 58.2],
+                    [17.0, 59.0],
+                    [15.6, 59.0],
+                    [15.6, 58.2]
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": 9102,
+    "normalProbability": true,
+    "event": { "sv": "Regn", "en": "Rain", "code": "RAIN" },
+    "descriptions": [],
+    "warningAreas": [
+      {
+        "id": 91021,
+        "approximateStart": "2026-04-02T12:00:00.000Z",
+        "approximateEnd": "2026-04-02T23:00:00.000Z",
+        "published": "2026-04-02T06:30:00.000Z",
+        "areaName": { "sv": "Västra Götalands inland", "en": "Inland of Västra Götaland" },
+        "warningLevel": { "sv": "Gul", "en": "Yellow", "code": "YELLOW" },
+        "eventDescription": { "sv": "Mycket regn", "en": "Heavy rain", "code": "RAIN" },
+        "affectedAreas": [
+          { "id": 14, "sv": "Västra Götalands län", "en": "Västra Götaland County" },
+          { "id": 5, "sv": "Östergötlands län", "en": "Östergötland County" }
+        ],
+        "descriptions": [
+          {
+            "title": { "sv": "Vad händer", "en": "What happens", "code": "WHAT" },
+            "text": { "sv": "30-50 mm regn på 12 timmar.", "en": "30-50 mm of rain in 12 hours." }
+          }
+        ],
+        "area": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": {},
+              "geometry": {
+                "type": "MultiPolygon",
+                "coordinates": [
+                  [
+                    [
+                      [11.8, 57.6],
+                      [13.2, 57.6],
+                      [13.2, 58.5],
+                      [11.8, 58.5],
+                      [11.8, 57.6]
+                    ]
+                  ],
+                  [
+                    [
+                      [14.8, 58.0],
+                      [15.4, 58.0],
+                      [15.4, 58.4],
+                      [14.8, 58.4],
+                      [14.8, 58.0]
+                    ]
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": 91022,
+        "approximateStart": "2026-04-02T12:00:00.000Z",
+        "published": "2026-04-02T06:30:00.000Z",
+        "areaName": { "sv": "Vänern", "en": "Lake Vänern" },
+        "warningLevel": { "sv": "Meddelande", "en": "Message", "code": "MESSAGE" },
+        "eventDescription": { "sv": "Höga flöden", "en": "High flows", "code": "FLOW" },
+        "affectedAreas": [{ "id": 58, "sv": "Vänern", "en": "Vänern" }],
+        "descriptions": [],
+        "area": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [12.3, 58.4],
+              [14.2, 58.4],
+              [14.2, 59.4],
+              [12.3, 59.4],
+              [12.3, 58.4]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+]

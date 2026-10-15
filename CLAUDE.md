@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/refresh.test.js          # one file
+node --test --test-name-pattern "warning" # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -31,16 +31,25 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+index.js                          SDK wiring only (registerHandlers from src/app.js)
+src/app.js                        every SDK handler, the "check" action report
+src/hub.js                        places, refresh timer, onPoll fallback, states, trigger, status
+src/devices.js                    the device of a place: features (keys are forever) and states
+src/places.js                     Gladys houses + typed coordinates → places (platform ids)
+src/smhi/client.js                the two SMHI endpoints (fetch, timeout, out-of-area 404)
+src/smhi/forecast.js              snow1g parsing, current step, 24 h, daily summaries, feels-like
+src/smhi/warnings.js              IBWW parsing, point-in-polygon, county matching
+src/widgets.js                    the "forecast" widget (manifest `widgets`)
+src/scenes.js                     the "get_forecast" scene action (manifest `scene_actions`)
+src/i18n.js                       every text, en/fr/de/es
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
+src/store.js                      /data/smhi-state.json (warnings already announced)
+src/issues.js                     repeated failures logged once
+scripts/probe.mjs                 read-only check of the real API (`node scripts/probe.mjs <lat> <lon>`)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+test/fixtures/smhi/               real snow1g answer (pysmhi), synthetic warnings (see its README)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +79,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, manifest texts, feature names, widget content, and
+  `docs/{en,fr,de,es}.md` with the same sections (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -197,6 +207,41 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - Les filtres de scène ne font qu'égalité et appartenance : un seuil reste le travail d'un capteur.
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
+
+## SMHI (propre à cette intégration)
+
+- **API** : prévision ponctuelle `snow1g` v1
+  (`opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/<lon>/lat/<lat>/data.json`)
+  et avertissements IBWW v1 (`opendata-download-warnings.smhi.se/ibww/api/version/1/warning.json`, toute
+  la Suède d'un coup). Pas de compte, pas de clé, licence CC BY 4.0, aucun quota publié : une requête par
+  lieu ajouté et une pour les avertissements par période (30 min par défaut, comme Home Assistant).
+- **`pmp3g` est retiré** (404 depuis le 31/03/2026) : ne pas suivre une doc ou une consigne qui le cite.
+  `snow1g` a un objet `data` plat, `time` au lieu de `validTime`, des noms CF (`air_temperature`…).
+- **Valeurs manquantes** : `9999` sur tous les paramètres, `-9` sur `precipitation_frozen_part`. Les
+  traiter en `null`, ne jamais les publier.
+- **Unités** : nébulosité en octas (0-8, convertie en %), `precipitation_amount_mean` en mm/h (intensité
+  moyenne de l'intervalle `intervalParametersStartTime` → `time`), visibilité en km. Pas des 1 h au début,
+  puis 2, 6 et 12 h. `predominant_precipitation_type_at_surface` nomme un type même sans précipitation :
+  on publie « Pas de précipitations » quand l'intensité est nulle.
+- **Hors zone** : un point hors de la grille répond 404 (`SmhiError.outOfArea`), dit dans le statut.
+- **Avertissements** : seuls `YELLOW`, `ORANGE`, `RED` comptent ; un lieu est concerné si son point est
+  dans le GeoJSON `area`, ou si son comté (`affectedAreas[].id`, codes de län) est choisi. Textes en
+  suédois et anglais seulement. Les annonces déjà faites vivent dans `/data/smhi-state.json`.
+- **Coordonnées = donnée personnelle** : jamais dans les journaux (un test le vérifie), ni dans les ids
+  d'appareil des maisons (on prend le `selector`).
+- **Session de code** : le proxy refuse les hôtes `smhi.se` (et `WebFetch` ne les résout pas). Fixtures :
+  la vraie réponse de `pysmhi` ; les avertissements sont synthétiques. `scripts/probe.mjs` vérifie le
+  reste depuis une machine qui a le réseau.
+
+## Pièges découverts ici
+
+- **Repli `onPoll` et timer interne** : avec des appareils à `poll_frequency` 60 s et un timer de 30 min,
+  un `onPoll` qui relit « après 90 % de la période » passe **avant** le timer (à 27 min) et le double. Le
+  repli ne doit relire qu'après **plus d'une période** sans lecture (1,2 ici) : le timer a calé.
+- **Pas de catégorie « nébulosité »** dans le cœur : `level-sensor/liquid-level-percent` (icône goutte,
+  pourcentage) ; `risk/integer` pour la probabilité d'orage et le niveau d'avertissement (0-3).
+- La limite de 300 caractères de `test/i18n.test.js` vaut aussi pour la `description` d'une `section`
+  (le cœur en accepte 1000).
 
 ## Store
 

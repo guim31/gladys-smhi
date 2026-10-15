@@ -30,6 +30,18 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+What the integration handles:
+
+- **No secret**: SMHI open data needs no account, no key, no password.
+- **Location**: the integration reads the coordinates of the Gladys houses
+  (`location: true`) and the coordinates typed in its configuration, and sends
+  them to SMHI only, rounded to six decimals, in the forecast request. They are
+  never written to the logs.
+- **`/data`**: `smhi-state.json` holds the identifiers of the warnings already
+  announced to the scenes, per place. Nothing else is stored.
+- **Network**: outbound HTTPS to `opendata-download-metfcst.smhi.se` and
+  `opendata-download-warnings.smhi.se`, nothing else. No port is opened.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and the SMHI services.

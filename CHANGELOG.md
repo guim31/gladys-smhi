@@ -12,44 +12,22 @@ the notes of the version's GitHub Release.
 
 ### Added
 
-- A working example of scene triggers, scene actions and dashboard widgets
-  (Gladys 5.1.0 or later).
-- `CHANGELOG.md`, rolled by the Release workflow.
-- A GitHub Release for every version, with its changelog section as notes: the
-  Gladys Supervision page links each version to the repository's releases.
-- CI runs the tests on Node 22 and 24, and builds the Docker image.
-- Dependabot keeps the npm dependencies and the GitHub Actions up to date.
-- `SECURITY.md` (how to report a vulnerability) and `CLAUDE.md` (project rules
-  for contributors and coding assistants).
-- Manifest tests: `version` matches `package.json`, `docker_image` is tagged
-  with it, descriptions hold 10 to 100 characters, placeholders are
-  multi-language objects.
-- The latitude and longitude fields show an example value as placeholder.
+- SMHI weather in Gladys, from the public SMHI open data (no account): one
+  device per Gladys house with a location, and one for coordinates typed in
+  the configuration.
+- Current weather of each place, refreshed by the integration every 15, 30 or
+  60 minutes: temperature, feels-like temperature, humidity, pressure, wind
+  speed, gusts and direction, cloud cover, precipitation intensity and type,
+  visibility, thunder probability and the weather in words.
+- SMHI weather warnings for Sweden: the warning level (0 to 3) and text of
+  each place, and the "New SMHI weather warning" scene trigger, fired once per
+  warning and level, restarts included.
+- "SMHI forecast" dashboard widget: current weather, the next 24 hours, the
+  warnings and six days, in the language and units of the user.
+- "Read the SMHI forecast" scene action: minimum and maximum temperature,
+  precipitation, strongest gust, thunder probability, weather and a summary
+  sentence for today, tomorrow or the day after.
+- "Check the forecast" button in the configuration.
+- Texts and documentation in English, French, German and Spanish.
 
-### Changed
-
-- Node.js 22 or later is required (Node 20 is end-of-life).
-- Integration SDK 0.15.0. The tests now run against the fake Gladys of the
-  SDK, which refuses the payloads Gladys refuses.
-- The refresh interval is one minute minimum, the fastest Gladys polls a
-  device. The plug's power is only sent when it changes, and every 30
-  minutes otherwise.
-
-### Fixed
-
-- Gladys refused the devices of the Discovery tab: the weather station and
-  the plug declared their poll frequency in seconds instead of one of the
-  values Gladys accepts, and were never polled. They now poll every minute,
-  and the readings follow the refresh interval of the configuration.
-
-- The release commit no longer fails `npm run format:check`: the Release
-  workflow updates the manifest `version` and `docker_image` in place instead
-  of re-printing the whole file with `jq`.
-- The integration can write to `/data`: the image creates the directory owned
-  by the `node` user, a new Docker volume was owned by root.
-- A sub-container running the integration's own image follows it to the new
-  tag at each release, as well as in the manifest of the build summary: it kept
-  the previous tag, which may not exist on the registry. Sub-containers on a
-  third-party image (a broker, a database...) keep theirs.
-
-[Unreleased]: https://github.com/GladysAssistant/integration-template-js/commits/main
+[Unreleased]: https://github.com/guim31/gladys-smhi/commits/main
