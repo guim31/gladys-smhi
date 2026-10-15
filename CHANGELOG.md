@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-15
+
 ### Added
 
 - SMHI weather in Gladys, from the public SMHI open data (no account): one
@@ -30,4 +32,5 @@ the notes of the version's GitHub Release.
 - "Check the forecast" button in the configuration.
 - Texts and documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-smhi/commits/main
+[Unreleased]: https://github.com/guim31/gladys-smhi/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-smhi/releases/tag/v1.0.1
