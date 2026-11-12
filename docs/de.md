@@ -31,7 +31,7 @@ Gewässer.
 
 ## Voraussetzungen
 
-- Gladys Assistant 5.1.0 oder neuer.
+- Gladys Assistant 5.3.0 oder neuer.
 - Gladys muss `opendata-download-metfcst.smhi.se` und
   `opendata-download-warnings.smhi.se` über HTTPS erreichen.
 - Für die Häuser: ein Standort unter **Einstellungen → Häuser** in Gladys.

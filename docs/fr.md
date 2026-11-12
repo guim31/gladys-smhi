@@ -30,7 +30,7 @@ alentour). Les avertissements n'existent que pour la Suède et ses eaux.
 
 ## Prérequis
 
-- Gladys Assistant 5.1.0 ou plus récent.
+- Gladys Assistant 5.3.0 ou plus récent.
 - Gladys doit joindre `opendata-download-metfcst.smhi.se` et
   `opendata-download-warnings.smhi.se` en HTTPS.
 - Pour les maisons : une position renseignée dans **Paramètres → Maisons** de
