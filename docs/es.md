@@ -29,7 +29,7 @@ los mares que los rodean). Los avisos solo existen para Suecia y sus aguas.
 
 ## Requisitos
 
-- Gladys Assistant 5.1.0 o posterior.
+- Gladys Assistant 5.3.0 o posterior.
 - Gladys debe alcanzar `opendata-download-metfcst.smhi.se` y
   `opendata-download-warnings.smhi.se` por HTTPS.
 - Para las casas: una ubicación definida en **Ajustes → Casas** de Gladys.

@@ -33,7 +33,7 @@ so. The warnings exist for Sweden only.
 
 ## Requirements
 
-- Gladys Assistant **5.1.0** or later.
+- Gladys Assistant **5.3.0** or later.
 - Outbound HTTPS to `opendata-download-metfcst.smhi.se` and
   `opendata-download-warnings.smhi.se`.
 - A location on a Gladys house (Settings → Houses), or coordinates typed in

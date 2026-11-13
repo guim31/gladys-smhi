@@ -171,3 +171,8 @@ test('field placeholders are multi-language objects', () => {
     assert.ok(f.placeholder.en);
   }
 });
+
+test('the catalog countries: Sweden, Norway, Finland, Denmark, Estonia, Latvia and Lithuania, which needs Gladys >= 5.3.0', () => {
+  assert.deepEqual(manifest.countries, ['SE', 'NO', 'FI', 'DK', 'EE', 'LV', 'LT']);
+  assert.ok(isAtLeast(minGladysVersion(), [5, 3, 0]), 'countries needs Gladys 5.3.0');
+});
