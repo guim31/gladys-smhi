@@ -1,6 +1,6 @@
 {
   "name": "gladys-smhi",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Gladys Assistant integration for the SMHI forecasts and weather warnings (Sweden and the Nordic countries).",
   "type": "module",

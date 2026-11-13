@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-11-13
+
 ### Changed
 
 - Declared for Sweden, Norway, Finland, Denmark, Estonia, Latvia and Lithuania only (`countries: ["SE", "NO", "FI", "DK", "EE", "LV", "LT"]`): the Gladys catalog of an
@@ -38,5 +40,6 @@ the notes of the version's GitHub Release.
 - "Check the forecast" button in the configuration.
 - Texts and documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-smhi/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/guim31/gladys-smhi/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/guim31/gladys-smhi/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/guim31/gladys-smhi/releases/tag/v1.0.1
